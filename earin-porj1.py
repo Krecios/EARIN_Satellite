@@ -41,7 +41,15 @@ def cartToPolar(x, y):
     return coords
 
 
-def gravlPull(v, alpha):
+def gravlPull(r, fi):
+    # to do! Unit vector trasformation
+    F = [v_x, v_y]
+    for pl in planets:
+        # grav pull calculation
+        F_pl = gravConst * \
+            (1/math.sqrt(r*r + pl[0]*pl[0] + 2 *
+                         r * pl[0] * math.cos(fi - pl[1])))
+        F += F_pl
     print("WIP")
 
 
