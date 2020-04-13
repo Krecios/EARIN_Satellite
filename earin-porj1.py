@@ -42,15 +42,17 @@ def cartToPolar(x, y):
 
 
 def gravlPull(r, fi):
-    # to do! Unit vector trasformation
-    F = [v_x, v_y]
+    F = polarToCart(r, fi)
     for pl in planets:
         # grav pull calculation
         F_pl = gravConst * \
             (1/math.sqrt(r*r + pl[0]*pl[0] + 2 *
                          r * pl[0] * math.cos(fi - pl[1])))
-        F += F_pl
-    print("WIP")
+        fiDifference = fi - pl[1]
+        F_vector = polarToCart(F_pl, fiDifference)
+        F += F_vector
+    print(F)
+    return F
 
 
 while maxiter != 0:
