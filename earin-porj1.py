@@ -1,18 +1,18 @@
 import math
 import easygraphics
 import time
-maxiter = 600  # maximum possible number of iterations
+maxiter = 1000  # maximum possible number of iterations
 # temporary attributes of the satellite for testing
-gravConst = 1
+gravConst = 5
 # parameters for the start of the satellite [v, fi, t_0]
-startParameters = [0.5, 45, 3]
+startParameters = [1, 45, 3]
 satelliteMass = 1
-startPanetID = 0
+startPanetID = 2
 destPlanetID = 1
 planets = []  # array of planets
 pl1 = [80, 35, 500]  # planet [r, fi, p]
 pl2 = [160, 87, 700]
-pl3 = [240, 270, 850]
+pl3 = [240, 123, 850]
 planets.append(pl1)
 planets.append(pl2)
 planets.append(pl3)
@@ -58,12 +58,17 @@ def gravPull(r, fi):
         # gravitational pull of the planets calculation
         F_pl = gravConst * (1/math.sqrt(r**2 + pl[0]**2 + 2 *
                                         r * pl[0] * math.cos(math.radians(fi - pl[1]))))
-        fiDifference = fi - pl[1]
+        currPl = polarToCart(pl[0], pl[1])
+        currSa = polarToCart(r, fi)
+        temp = [currPl[0] - currSa[0], currPl[1] - currSa[1]]
+        fiDifference = math.degrees(math.atan2(temp[1], temp[0]))
         F_vector = polarToCart(F_pl, fiDifference)
+        print(F_vector)
         # print(F_vector)
         F_sum[0] += F_vector[0]/satelliteMass
         F_sum[1] += F_vector[1]/satelliteMass
-    print('Vector:')
+    # print('Vector:')
+    print('Sum: ', F_sum)
     return F_sum
 
 
@@ -107,11 +112,11 @@ def mainloop():
                                             startParameters[0], startParameters[1])
             satellite[0] = newSatPosition[0]
             satellite[1] = newSatPosition[1]
-            print(newSatPosition)
+            # print(newSatPosition)
             # calculating the new velocity vector of the satellite
             newSatVelocity = velocityChange(pull,
                                             startParameters[0], startParameters[1])
-            print(newSatVelocity)
+            # print(newSatVelocity)
             newSatVelocity = cartToPolar(newSatVelocity[0], newSatVelocity[1])
             startParameters[0] = newSatVelocity[0]
             startParameters[1] = newSatVelocity[1]
