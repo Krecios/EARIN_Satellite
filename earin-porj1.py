@@ -1,21 +1,29 @@
 import math
 import easygraphics
 import time
-maxiter = 1000  # maximum possible number of iterations
+maxiter = 300  # maximum possible number of iterations
 # temporary attributes of the satellite for testing
-gravConst = 5
+gravConst = 2.5
+allowedDistance = 55
 # parameters for the start of the satellite [v, fi, t_0]
-startParameters = [1, 45, 3]
+startParameters = [1, 30, 100]
 satelliteMass = 1
 startPanetID = 2
 destPlanetID = 1
+minDistance = 0
 planets = []  # array of planets
 pl1 = [80, 35, 500]  # planet [r, fi, p]
 pl2 = [160, 87, 700]
 pl3 = [240, 123, 850]
+pl4 = [120, 50, 400]
+pl5 = [20, 12, 200]
+pl6 = [300, 50, 1000]
 planets.append(pl1)
 planets.append(pl2)
 planets.append(pl3)
+planets.append(pl4)
+planets.append(pl5)
+planets.append(pl6)
 satellite = [planets[startPanetID][0], planets[startPanetID][1]]
 
 
@@ -98,6 +106,8 @@ def mainloop():
     # visualization
     x = 500
     y = 400
+    global minDistance
+    minDistance = distanceToDest()
     vectorCollection = []
     iterMax = maxiter
     easygraphics.set_render_mode(easygraphics.RenderMode.RENDER_MANUAL)
@@ -105,26 +115,40 @@ def mainloop():
         # code from the simmulation function
         while iterMax != 0:
             rotatePlanets()
-            # calculating the gravitational pull
-            pull = gravPull(satellite[0], satellite[1])
-            # calculating the new position of the satellite
-            newSatPosition = positionChange(pull,
-                                            startParameters[0], startParameters[1])
-            satellite[0] = newSatPosition[0]
-            satellite[1] = newSatPosition[1]
-            # print(newSatPosition)
-            # calculating the new velocity vector of the satellite
-            newSatVelocity = velocityChange(pull,
-                                            startParameters[0], startParameters[1])
-            # print(newSatVelocity)
-            newSatVelocity = cartToPolar(newSatVelocity[0], newSatVelocity[1])
-            startParameters[0] = newSatVelocity[0]
-            startParameters[1] = newSatVelocity[1]
+            if iterMax <= maxiter - startParameters[2]:
+                currDistance = distanceToDest()
+                if(currDistance < minDistance):
+                    minDistance = currDistance
+                # calculating the gravitational pull
+                pull = gravPull(satellite[0], satellite[1])
+                # calculating the new position of the satellite
+                newSatPosition = positionChange(pull,
+                                                startParameters[0], startParameters[1])
+                satellite[0] = newSatPosition[0]
+                satellite[1] = newSatPosition[1]
+                # print(newSatPosition)
+                # calculating the new velocity vector of the satellite
+                newSatVelocity = velocityChange(pull,
+                                                startParameters[0], startParameters[1])
+                # print(newSatVelocity)
+                newSatVelocity = cartToPolar(
+                    newSatVelocity[0], newSatVelocity[1])
+                startParameters[0] = newSatVelocity[0]
+                startParameters[1] = newSatVelocity[1]
+            else:
+                satellite[0] = planets[startPanetID][0]
+                satellite[1] = planets[startPanetID][1]
             if easygraphics.delay_jfps(40):
                 # settin the fps limit
                 easygraphics.clear_device()
                 for pl in planets:
                     # transforming and drawing planets
+                    if pl == planets[destPlanetID]:
+                        coordsGoal = polarToCart(pl[0], pl[1])
+                        easygraphics.set_fill_color(
+                            easygraphics.Color.LIGHT_GREEN)
+                        easygraphics.draw_circle(
+                            coordsGoal[0] + 500, coordsGoal[1] + 400, allowedDistance)
                     easygraphics.circle(x, y, pl[0])
                     coordsPlanet = polarToCart(pl[0], pl[1])
                     easygraphics.set_fill_color(easygraphics.Color.BLUE)
@@ -138,6 +162,8 @@ def mainloop():
                     coordsSatellite[0] + 500, coordsSatellite[1] + 400, 3)
                 for vec in vectorCollection:
                     easygraphics.draw_circle(vec[0] + 500, vec[1] + 400, 2)
+                easygraphics.draw_line(
+                    coordsSatellite[0] + 500, coordsSatellite[1] + 400, coordsGoal[0] + 500, coordsGoal[1] + 400)
             iterMax -= 1
     easygraphics.close_graph()
 
@@ -149,27 +175,62 @@ def main():
 
 
 def simulation(iterMax):
+    global minDistance
+    minDistance = distanceToDest()
     while iterMax != 0:
         rotatePlanets()
-        # calculating the gravitational pull
-        pull = gravPull(satellite[0], satellite[1])
-        # calculating the new position of the satellite
-        newSatPosition = positionChange(pull,
-                                        startParameters[0], startParameters[1])
-        satellite[0] = newSatPosition[0]
-        satellite[1] = newSatPosition[1]
-        print(newSatPosition)
-        # calculating the new velocity vector of the satellite
-        newSatVelocity = velocityChange(pull,
-                                        startParameters[0], startParameters[1])
-        print(newSatVelocity)
-        newSatVelocity = cartToPolar(newSatVelocity[0], newSatVelocity[1])
-        startParameters[0] = newSatVelocity[0]
-        startParameters[1] = newSatVelocity[1]
+        if iterMax <= maxiter - startParameters[2]:
+            currDistance = distanceToDest()
+            if(currDistance < minDistance):
+                minDistance = currDistance
+            # calculating the gravitational pull
+            pull = gravPull(satellite[0], satellite[1])
+            # calculating the new position of the satellite
+            newSatPosition = positionChange(pull,
+                                            startParameters[0], startParameters[1])
+            satellite[0] = newSatPosition[0]
+            satellite[1] = newSatPosition[1]
+            # print(newSatPosition)
+            # calculating the new velocity vector of the satellite
+            newSatVelocity = velocityChange(pull,
+                                            startParameters[0], startParameters[1])
+            # print(newSatVelocity)
+            newSatVelocity = cartToPolar(
+                newSatVelocity[0], newSatVelocity[1])
+            startParameters[0] = newSatVelocity[0]
+            startParameters[1] = newSatVelocity[1]
+        else:
+            satellite[0] = planets[startPanetID][0]
+            satellite[1] = planets[startPanetID][1]
         iterMax -= 1
+    return minDistance
+
+
+def reset():
+    # resets the system to the initial values
+    planets.clear()
+    pl1 = [80, 35, 500]  # planet [r, fi, p]
+    pl2 = [160, 87, 700]
+    pl3 = [240, 123, 850]
+    pl4 = [120, 50, 400]
+    pl5 = [20, 12, 200]
+    pl6 = [300, 50, 1000]
+    planets.append(pl1)
+    planets.append(pl2)
+    planets.append(pl3)
+    planets.append(pl4)
+    planets.append(pl5)
+    planets.append(pl6)
+    global satellite
+    satellite = [planets[startPanetID][0], planets[startPanetID][1]]
+    global startParameters
+    startParameters = [1, 30, 100]
 
 
 # no visualization
 # simulation(maxiter)
 # visualization
 easygraphics.easy_run(main)
+print(minDistance)
+reset()
+print(simulation(maxiter))
