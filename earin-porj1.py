@@ -1,12 +1,15 @@
 import math
 import easygraphics
 import time
+import copy
+
 maxiter = 300  # maximum possible number of iterations
 # temporary attributes of the satellite for testing
 gravConst = 2.5
 allowedDistance = 55
 # parameters for the start of the satellite [v, fi, t_0]
 startParameters = [1, 30, 100]
+resetParamters = copy.deepcopy(startParameters)
 satelliteMass = 1
 startPanetID = 2
 destPlanetID = 1
@@ -24,7 +27,9 @@ planets.append(pl3)
 planets.append(pl4)
 planets.append(pl5)
 planets.append(pl6)
+resetPlantes = copy.deepcopy(planets)
 satellite = [planets[startPanetID][0], planets[startPanetID][1]]
+resetSatellite = copy.deepcopy(satellite)
 
 
 def rotatePlanets():
@@ -208,29 +213,26 @@ def simulation(iterMax):
 
 def reset():
     # resets the system to the initial values
-    planets.clear()
-    pl1 = [80, 35, 500]  # planet [r, fi, p]
-    pl2 = [160, 87, 700]
-    pl3 = [240, 123, 850]
-    pl4 = [120, 50, 400]
-    pl5 = [20, 12, 200]
-    pl6 = [300, 50, 1000]
-    planets.append(pl1)
-    planets.append(pl2)
-    planets.append(pl3)
-    planets.append(pl4)
-    planets.append(pl5)
-    planets.append(pl6)
+    global planets
+    planets = resetPlantes
     global satellite
-    satellite = [planets[startPanetID][0], planets[startPanetID][1]]
+    satellite = resetSatellite
     global startParameters
-    startParameters = [1, 30, 100]
+    startParameters = resetParamters
 
 
 # no visualization
 # simulation(maxiter)
 # visualization
+'''
 easygraphics.easy_run(main)
 print(minDistance)
 reset()
+easygraphics.easy_run(main)
+print(minDistance)
+reset()
+'''
 print(simulation(maxiter))
+reset()
+print(simulation(maxiter))
+reset()
