@@ -7,7 +7,7 @@ import random
 maxiter = 300  # maximum possible number of iterations
 # temporary attributes of the satellite for testing
 gravConst = 2.5
-allowedDistance = 55
+allowedDistance = 10
 # parameters for the start of the satellite [v, fi, t_0]
 v = random.randrange(0, 5, 1)
 fi = random.randrange(0, 360, 1)
@@ -20,21 +20,20 @@ satelliteMass = 1
 startPanetID = 2
 destPlanetID = 4
 minDistance = 0
-planets = []  # array of planets
+planetsBase = []  # array of planets
 pl1 = [80, 35, 500]  # planet [r, fi, p]
 pl2 = [160, 87, 700]
 pl3 = [240, 123, 850]
 pl4 = [120, 50, 400]
 pl5 = [20, 12, 200]
 pl6 = [300, 50, 1000]
-planets.append(pl1)
-planets.append(pl2)
-planets.append(pl3)
-planets.append(pl4)
-planets.append(pl5)
-planets.append(pl6)
-# saving planets position for the pourpouse of reseting them to base coordinates
-resetPlantes = copy.deepcopy(planets)
+planetsBase.append(pl1)
+planetsBase.append(pl2)
+planetsBase.append(pl3)
+planetsBase.append(pl4)
+planetsBase.append(pl5)
+planetsBase.append(pl6)
+planets = copy.deepcopy(planetsBase)
 satellite = [planets[startPanetID][0], planets[startPanetID][1]]
 
 
@@ -219,7 +218,7 @@ def simulation(iterMax):
 def reset():
     # resets the system to the initial values
     global planets
-    planets = resetPlantes
+    planets = copy.deepcopy(planetsBase)
     global satellite
     satellite = [planets[startPanetID][0], planets[startPanetID][1]]
     getRandomStart()
@@ -227,29 +226,41 @@ def reset():
 
 def getRandomStart():
     # generates random start parameters
+    global startParameters
     global v
     v = random.randrange(0, 5, 1)
     global fi
     fi = random.randrange(0, 360, 1)
     global t0
     t0 = random.randrange(0, maxiter, 1)
-    global startParameters
     startParameters = [v, fi, t0]
 
-# no visualization
-# simulation(maxiter)
-# visualization
+
+def hillClimbing():
+    dest = 10000
+    while(dest > allowedDistance):
+        global baseParamters
+        baseParamters = copy.deepcopy(startParameters)
+        dest = simulation(maxiter)
+        reset()
+        print(dest)
 
 
+'''
 easygraphics.easy_run(main)
 print(minDistance)
 reset()
 easygraphics.easy_run(main)
 print(minDistance)
 reset()
-'''
 print(simulation(maxiter))
 reset()
 print(simulation(maxiter))
 reset()
 '''
+hillClimbing()
+startParameters[0] = baseParamters[0]
+startParameters[1] = baseParamters[1]
+startParameters[2] = baseParamters[2]
+easygraphics.easy_run(main)
+print(minDistance)
