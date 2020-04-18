@@ -2,17 +2,23 @@ import math
 import easygraphics
 import time
 import copy
+import random
 
 maxiter = 300  # maximum possible number of iterations
 # temporary attributes of the satellite for testing
 gravConst = 2.5
 allowedDistance = 55
 # parameters for the start of the satellite [v, fi, t_0]
-startParameters = [1, 30, 100]
-resetParamters = copy.deepcopy(startParameters)
+v = random.randrange(0, 5, 1)
+fi = random.randrange(0, 360, 1)
+t0 = random.randrange(0, maxiter, 1)
+startParameters = [v, fi, t0]
+#startParameters = [1, 30, 100]
+# saving base parameters for the pourpouse of mutation and generating neighbors
+baseParamters = copy.deepcopy(startParameters)
 satelliteMass = 1
 startPanetID = 2
-destPlanetID = 1
+destPlanetID = 4
 minDistance = 0
 planets = []  # array of planets
 pl1 = [80, 35, 500]  # planet [r, fi, p]
@@ -27,9 +33,9 @@ planets.append(pl3)
 planets.append(pl4)
 planets.append(pl5)
 planets.append(pl6)
+# saving planets position for the pourpouse of reseting them to base coordinates
 resetPlantes = copy.deepcopy(planets)
 satellite = [planets[startPanetID][0], planets[startPanetID][1]]
-resetSatellite = copy.deepcopy(satellite)
 
 
 def rotatePlanets():
@@ -76,12 +82,11 @@ def gravPull(r, fi):
         temp = [currPl[0] - currSa[0], currPl[1] - currSa[1]]
         fiDifference = math.degrees(math.atan2(temp[1], temp[0]))
         F_vector = polarToCart(F_pl, fiDifference)
-        print(F_vector)
         # print(F_vector)
         F_sum[0] += F_vector[0]/satelliteMass
         F_sum[1] += F_vector[1]/satelliteMass
     # print('Vector:')
-    print('Sum: ', F_sum)
+    # print('Sum: ', F_sum)
     return F_sum
 
 
@@ -216,15 +221,26 @@ def reset():
     global planets
     planets = resetPlantes
     global satellite
-    satellite = resetSatellite
-    global startParameters
-    startParameters = resetParamters
+    satellite = [planets[startPanetID][0], planets[startPanetID][1]]
+    getRandomStart()
 
+
+def getRandomStart():
+    # generates random start parameters
+    global v
+    v = random.randrange(0, 5, 1)
+    global fi
+    fi = random.randrange(0, 360, 1)
+    global t0
+    t0 = random.randrange(0, maxiter, 1)
+    global startParameters
+    startParameters = [v, fi, t0]
 
 # no visualization
 # simulation(maxiter)
 # visualization
-'''
+
+
 easygraphics.easy_run(main)
 print(minDistance)
 reset()
@@ -236,3 +252,4 @@ print(simulation(maxiter))
 reset()
 print(simulation(maxiter))
 reset()
+'''
