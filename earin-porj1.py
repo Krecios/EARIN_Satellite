@@ -3,22 +3,26 @@ import easygraphics
 import time
 import copy
 import random
+import numpy as np
 
 maxiter = 300  # maximum possible number of iterations
 # temporary attributes of the satellite for testing
 gravConst = 2.5
-allowedDistance = 10
+allowedDistance = 25
+vMax = 10
 # parameters for the start of the satellite [v, fi, t_0]
-v = random.randrange(0, 5, 1)
+v = random.randrange(0, vMax * 10, 1)
+v = v/10
+print(v)
 fi = random.randrange(0, 360, 1)
 t0 = random.randrange(0, maxiter, 1)
-startParameters = [v, fi, t0]
+baseParameters = [v, fi, t0]
 #startParameters = [1, 30, 100]
 # saving base parameters for the pourpouse of mutation and generating neighbors
-baseParamters = copy.deepcopy(startParameters)
+startParameters = copy.deepcopy(baseParameters)
 satelliteMass = 1
-startPanetID = 2
-destPlanetID = 4
+startPanetID = 3
+destPlanetID = 2
 minDistance = 0
 planetsBase = []  # array of planets
 pl1 = [80, 35, 500]  # planet [r, fi, p]
@@ -26,7 +30,7 @@ pl2 = [160, 87, 700]
 pl3 = [240, 123, 850]
 pl4 = [120, 50, 400]
 pl5 = [20, 12, 200]
-pl6 = [300, 50, 1000]
+pl6 = [300, 310, 1000]
 planetsBase.append(pl1)
 planetsBase.append(pl2)
 planetsBase.append(pl3)
@@ -117,7 +121,8 @@ def mainloop():
     y = 400
     global minDistance
     minDistance = distanceToDest()
-    vectorCollection = []
+    vectorCollectionBad = []
+    vectorCollectionGood = []
     iterMax = maxiter
     easygraphics.set_render_mode(easygraphics.RenderMode.RENDER_MANUAL)
     while easygraphics.is_run():
@@ -165,11 +170,22 @@ def mainloop():
                         coordsPlanet[0] + 500, coordsPlanet[1] + 400, 5)
                 # transforming and drawing satellite
                 coordsSatellite = polarToCart(satellite[0], satellite[1])
-                vectorCollection.append(coordsSatellite)
+                goal = polarToCart(
+                    planets[destPlanetID][0], planets[destPlanetID][1])
+                if math.sqrt((coordsSatellite[0] - goal[0])**2 + (coordsSatellite[1] - goal[1])**2) < allowedDistance:
+                    vectorCollectionGood.append(coordsSatellite)
+                else:
+                    vectorCollectionBad.append(coordsSatellite)
                 easygraphics.set_fill_color(easygraphics.Color.RED)
                 easygraphics.draw_circle(
                     coordsSatellite[0] + 500, coordsSatellite[1] + 400, 3)
-                for vec in vectorCollection:
+                for vec in vectorCollectionGood:
+                    easygraphics.set_fill_color(
+                        easygraphics.Color.CYAN)
+                    easygraphics.draw_circle(vec[0] + 500, vec[1] + 400, 2)
+                for vec in vectorCollectionBad:
+                    easygraphics.set_fill_color(
+                        easygraphics.Color.RED)
                     easygraphics.draw_circle(vec[0] + 500, vec[1] + 400, 2)
                 easygraphics.draw_line(
                     coordsSatellite[0] + 500, coordsSatellite[1] + 400, coordsGoal[0] + 500, coordsGoal[1] + 400)
@@ -221,14 +237,15 @@ def reset():
     planets = copy.deepcopy(planetsBase)
     global satellite
     satellite = [planets[startPanetID][0], planets[startPanetID][1]]
-    getRandomStart()
+    # getRandomStart()
 
 
 def getRandomStart():
     # generates random start parameters
     global startParameters
     global v
-    v = random.randrange(0, 5, 1)
+    v = random.randrange(0, vMax * 10, 1)
+    v = v/10
     global fi
     fi = random.randrange(0, 360, 1)
     global t0
@@ -238,29 +255,55 @@ def getRandomStart():
 
 def hillClimbing():
     dest = 10000
+    global baseParameters
+    global startParameters
+    sigmaAngle = 1
+    sigmaTime = 1
+    sigmaVelocity = 0.2
+    iterWithNoChange = 0
+    steps = 0
+    totalIterations = 0
     while(dest > allowedDistance):
-        global baseParamters
-        baseParamters = copy.deepcopy(startParameters)
-        dest = simulation(maxiter)
+        if iterWithNoChange % 10 == 0:
+            iterWithNoChange = 0
+            sigmaAngle *= 1.05
+            sigmaTime *= 1.05
+            sigmaVelocity *= 1.05
+        startParameters = copy.deepcopy(baseParameters)
+        iterDest = simulation(maxiter)
+        if dest > iterDest:
+            dest = iterDest
+            sigmaAngle = 1
+            sigmaVelocity = 0.2
+            sigmaTime = 1
+            steps += 1
+            totalIterations += 1
+        else:
+            baseParameters[0] += np.random.normal(0, sigmaVelocity, 1)
+            baseParameters[1] += np.random.normal(0, sigmaAngle, 1)
+            baseParameters[2] += np.random.normal(0, sigmaTime, 1)
+            if baseParameters[0] < 0:
+                baseParameters[0] += vMax
+            elif baseParameters[0] > vMax:
+                baseParameters[0] -= vMax
+            if baseParameters[1] < vMax:
+                baseParameters[1] += 360
+            elif baseParameters[1] > 360:
+                baseParameters[1] -= 360
+            if baseParameters[2] > maxiter:
+                baseParameters[2] -= maxiter
+            elif baseParameters[2] < 0:
+                baseParameters[2] += maxiter
+            iterWithNoChange += 1
+            totalIterations += 1
+            print(baseParameters)
         reset()
-        print(dest)
+    startParameters = copy.deepcopy(baseParameters)
+    print('Start Parameters:', startParameters)
+    print('Minimal Distance:', minDistance)
+    print('No. Steps: ', steps)
+    print('Total Iterations: ', totalIterations)
+    easygraphics.easy_run(main)
 
 
-'''
-easygraphics.easy_run(main)
-print(minDistance)
-reset()
-easygraphics.easy_run(main)
-print(minDistance)
-reset()
-print(simulation(maxiter))
-reset()
-print(simulation(maxiter))
-reset()
-'''
 hillClimbing()
-startParameters[0] = baseParamters[0]
-startParameters[1] = baseParamters[1]
-startParameters[2] = baseParamters[2]
-easygraphics.easy_run(main)
-print(minDistance)
