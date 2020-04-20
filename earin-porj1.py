@@ -6,39 +6,56 @@ import random
 import numpy as np
 
 maxiter = 300  # maximum possible number of iterations
-# temporary attributes of the satellite for testing
-gravConst = 2.5
+# gravity strength
+gravConst = 2
+# allowed distance from the goal planet
 allowedDistance = 25
+# maximum allowed velocity of the satellite
 vMax = 10
-# parameters for the start of the satellite [v, fi, t_0]
-v = random.randrange(0, vMax * 10, 1)
-v = v/10
-print(v)
-fi = random.randrange(0, 360, 1)
-t0 = random.randrange(0, maxiter, 1)
-baseParameters = [v, fi, t0]
-#startParameters = [1, 30, 100]
-# saving base parameters for the pourpouse of mutation and generating neighbors
-startParameters = copy.deepcopy(baseParameters)
+# number of planets in the simulation
+planetsCount = 8
+# mass of the satellite
 satelliteMass = 1
+# parameters of the start and goal planet
 startPanetID = 3
 destPlanetID = 2
+# parameters for the start of the satellite [v, fi, t_0], filled in problemGenerator()
+startParameters = []
+# copy of the start parameters used for various calculations, copied in the problemGenerator()
+baseParameters = []
+# mimal value of the distance between the goal and the satellite, calculated during simulation
 minDistance = 0
-planetsBase = []  # array of planets
-pl1 = [80, 35, 500]  # planet [r, fi, p]
-pl2 = [160, 87, 700]
-pl3 = [240, 123, 850]
-pl4 = [120, 50, 400]
-pl5 = [20, 12, 200]
-pl6 = [300, 310, 1000]
-planetsBase.append(pl1)
-planetsBase.append(pl2)
-planetsBase.append(pl3)
-planetsBase.append(pl4)
-planetsBase.append(pl5)
-planetsBase.append(pl6)
+# array of planets, filled in problemGnerator()
+planetsBase = []
+# copy of the planet array that is used during the simmulation, copied in the problemGenerator()
 planets = copy.deepcopy(planetsBase)
-satellite = [planets[startPanetID][0], planets[startPanetID][1]]
+# satellite location, filled by the parameters of start planet in porblemGenerator()
+satellite = []
+
+
+def problemGenerator():
+    v = random.randrange(0, vMax * 10, 1)
+    v = v/10
+    print(v)
+    fi = random.randrange(0, 360, 1)
+    t0 = random.randrange(0, maxiter, 1)
+    global baseParameters
+    baseParameters = [v, fi, t0]
+    global startParameters
+    startParameters = copy.deepcopy(baseParameters)
+    nPlanets = planetsCount
+    while nPlanets != 0:
+        r = random.randrange(10, 400, 1)
+        fi = random.randrange(0, 360, 1)
+        t = random.randrange(360, 1000, 1)
+        planet = [r, fi, t]
+        planetsBase.append(planet)
+        nPlanets -= 1
+    global planets
+    planets = copy.deepcopy(planetsBase)
+    # start coordinates of the satellite equal to the coordinates of the start planet
+    global satellite
+    satellite = [planets[startPanetID][0], planets[startPanetID][1]]
 
 
 def rotatePlanets():
@@ -237,20 +254,6 @@ def reset():
     planets = copy.deepcopy(planetsBase)
     global satellite
     satellite = [planets[startPanetID][0], planets[startPanetID][1]]
-    # getRandomStart()
-
-
-def getRandomStart():
-    # generates random start parameters
-    global startParameters
-    global v
-    v = random.randrange(0, vMax * 10, 1)
-    v = v/10
-    global fi
-    fi = random.randrange(0, 360, 1)
-    global t0
-    t0 = random.randrange(0, maxiter, 1)
-    startParameters = [v, fi, t0]
 
 
 def hillClimbing():
@@ -264,7 +267,7 @@ def hillClimbing():
     steps = 0
     totalIterations = 0
     while(dest > allowedDistance):
-        if iterWithNoChange % 10 == 0:
+        if iterWithNoChange % 5 == 0:
             iterWithNoChange = 0
             sigmaAngle *= 1.05
             sigmaTime *= 1.05
@@ -306,4 +309,5 @@ def hillClimbing():
     easygraphics.easy_run(main)
 
 
+problemGenerator()
 hillClimbing()
